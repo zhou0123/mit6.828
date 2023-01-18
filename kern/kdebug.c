@@ -5,9 +5,9 @@
 
 #include <kern/kdebug.h>
 
-extern const struct Stab __STAB_BEGIN__[];	// Beginning of stabs table
+extern const struct Stab __STAB_BEGIN__[];	// Beginning of stabs table 插入表的开始
 extern const struct Stab __STAB_END__[];	// End of stabs table
-extern const char __STABSTR_BEGIN__[];		// Beginning of string table
+extern const char __STABSTR_BEGIN__[];		// Beginning of string table  字符串表的开头 
 extern const char __STABSTR_END__[];		// End of string table
 
 
@@ -100,7 +100,8 @@ stab_binsearch(const struct Stab *stabs, int *region_left, int *region_right,
 //	instruction address, 'addr'.  Returns 0 if information was found, and
 //	negative if not.  But even if it returns negative it has stored some
 //	information into '*info'.
-//
+// 用有关指定指令地址“addr”的信息填充“info”结构。如果找到信息，则返回0；如果没有，则返回负值。但即使它返回负值，它也会将一些信息存储到“*info”中。
+
 int
 debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 {
@@ -179,7 +180,13 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	//	Look at the STABS documentation and <inc/stab.h> to find
 	//	which one.
 	// Your code here.
-
+	stab_binsearch(stabs,&lline,&rline,N_SLINE,addr);
+	if (lline<=rline) info->eip_line = stabs[lline].n_desc;
+	else 
+	{
+		info->eip_line = 0;
+		return -1;
+	}
 
 	// Search backwards from the line number for the relevant filename
 	// stab.

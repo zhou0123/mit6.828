@@ -5,12 +5,13 @@
  * This file contains definitions for the x86 memory management unit (MMU),
  * including paging- and segmentation-related data structures and constants,
  * the %cr0, %cr4, and %eflags registers, and traps.
+ * 此文件包含x86内存管理单元（MMU）的定义，包括与分页和分段相关的数据结构和常量、%cr0、%cr4和%eflags寄存器以及陷阱。
  */
 
 /*
  *
  *	Part 1.  Paging data structures and constants.
- *
+ *  分页数据结构和常量。 
  */
 
 // A linear address 'la' has a three-part structure as follows:
@@ -25,6 +26,8 @@
 // The PDX, PTX, PGOFF, and PGNUM macros decompose linear addresses as shown.
 // To construct a linear address la from PDX(la), PTX(la), and PGOFF(la),
 // use PGADDR(PDX(la), PTX(la), PGOFF(la)).
+// PDX、PTX、PGOFF和PGNUM宏分解线性地址，如图所示。
+// 要从PDX（la）、PTX（la）和PGOFF（la）构造线性地址la，请使用PGADDR（PDX（a）、PTX（la）和PGFF（la））。
 
 // page number field of address
 #define PGNUM(la)	(((uintptr_t) (la)) >> PTXSHIFT)
@@ -38,7 +41,7 @@
 // offset in page
 #define PGOFF(la)	(((uintptr_t) (la)) & 0xFFF)
 
-// construct linear address from indexes and offset
+// construct linear address from indexes and offset  从索引和偏移量构造线性地址 
 #define PGADDR(d, t, o)	((void*) ((d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
 
 // Page directory and page table constants.
@@ -72,7 +75,7 @@
 // Flags in PTE_SYSCALL may be used in system calls.  (Others may not.)
 #define PTE_SYSCALL	(PTE_AVAIL | PTE_P | PTE_W | PTE_U)
 
-// Address in page table or page directory entry
+// Address in page table or page directory entry  页表或页目录条目中的地址 
 #define PTE_ADDR(pte)	((physaddr_t) (pte) & ~0xFFF)
 
 // Control Register flags
