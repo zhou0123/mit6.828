@@ -45,6 +45,7 @@
 
 struct PushRegs {
 	/* registers as pushed by pusha */
+	//  由pusha推送的寄存器 
 	uint32_t reg_edi;
 	uint32_t reg_esi;
 	uint32_t reg_ebp;
@@ -69,6 +70,7 @@ struct Trapframe {
 	uint16_t tf_padding3;
 	uint32_t tf_eflags;
 	/* below here only when crossing rings, such as from user to kernel */
+	//  以下仅当交叉环时，例如从用户到内核 
 	uintptr_t tf_esp;
 	uint16_t tf_ss;
 	uint16_t tf_padding4;

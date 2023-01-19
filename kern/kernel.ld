@@ -46,13 +46,15 @@ SECTIONS
 	.data : {
 		*(.data)
 	}
-
+	
 	.bss : {
 		PROVIDE(edata = .);
 		*(.bss)
+		*(COMMON) 
 		PROVIDE(end = .);
 		BYTE(0)
 	}
+
 
 
 	/DISCARD/ : {

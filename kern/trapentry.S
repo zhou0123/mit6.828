@@ -19,6 +19,11 @@
  * during IDT setup).  You can declare the function with
  *   void NAME();
  * where NAME is the argument passed to TRAPHANDLER.
+* TRAPHANDLER为处理陷阱定义了一个全局可见的函数。
+* 它将陷阱编号推送到堆栈上，然后跳转到_alltraps。
+* 对于CPU自动推送错误代码的陷阱，请使用TRAPHAND LER。
+* 您不应该从C调用TRAPHANDLE函数，
+* 但您可能需要在C中声明一个（例如，在IDT设置期间获取函数指针）。 
  */
 #define TRAPHANDLER(name, num)						\
 	.globl name;		/* define global symbol for 'name' */	\
@@ -42,14 +47,44 @@
 	jmp _alltraps
 
 .text
-
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
-
-
+TRAPHANDLER_NOEC(divide_handler,T_DIVIDE);
+TRAPHANDLER_NOEC(debug_handler,T_DEBUG);
+TRAPHANDLER_NOEC(nmi_handler,T_NMI);
+TRAPHANDLER_NOEC(brkpt_handler,T_BRKPT);
+TRAPHANDLER_NOEC(oflow_handler,T_OFLOW);
+TRAPHANDLER_NOEC(bound_hander,T_BOUND);
+TRAPHANDLER_NOEC(illop_handler,T_ILLOP);
+TRAPHANDLER_NOEC(device_handler,T_DEVICE);
+TRAPHANDLER_NOEC(fperr_handler,T_FPERR);
+TRAPHANDLER(dblflt_handler,T_DBLFLT);
+TRAPHANDLER_NOEC(mchk_handler,T_MCHK);
+TRAPHANDLER_NOEC(simderr_handler,T_SIMDERR);
+TRAPHANDLER_NOEC(syscall_handler,T_SYSCALL);
+TRAPHANDLER(tss_handler, T_TSS);
+TRAPHANDLER(segnp_handler,T_SEGNP);
+TRAPHANDLER(stack_handler,T_STACK);
+TRAPHANDLER(gpflt_handler,T_GPFLT);
+TRAPHANDLER(pgflt_handler,T_PGFLT);
+TRAPHANDLER(align_handler,T_ALIGN);
 
 /*
  * Lab 3: Your code here for _alltraps
  */
+ .globl name;
+  _alltraps:
+	pushl %ds
+	pushl %es
+	pushal
+ 
+ 
+	movl $GD_KD,%eax
+	movl %eax,%es
+	movl %eax,%ds
+ 
+	pushl  %esp
+	call trap
+ 
 

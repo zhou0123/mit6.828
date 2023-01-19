@@ -11,14 +11,20 @@ syscall(int num, int check, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	// Generic system call: pass system call number in AX,
 	// up to five parameters in DX, CX, BX, DI, SI.
 	// Interrupt kernel with T_SYSCALL.
+	// 
+
+	// 通用系统调用：传递AX中的系统调用号，DX、CX、BX、DI、SI中最多五个参数。
+	// 使用T_SYSCALL中断内核。 
 	//
 	// The "volatile" tells the assembler not to optimize
 	// this instruction away just because we don't use the
 	// return value.
+	//  “volatile”告诉汇编器不要因为我们不使用返回值就优化这个指令。 
 	//
 	// The last clause tells the assembler that this can
 	// potentially change the condition codes and arbitrary
 	// memory locations.
+	//  最后一个子句告诉汇编器，这可能会更改条件代码和任意内存位置。 
 
 	asm volatile("int %1\n"
 		     : "=a" (ret)

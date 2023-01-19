@@ -20,9 +20,12 @@ i386_init(void)
 	// Before doing anything else, complete the ELF loading process.
 	// Clear the uninitialized global data (BSS) section of our program.
 	// This ensures that all static/global variables start out zero.
+	// 在执行其他操作之前，请完成ELF加载过程。
+	// 清除程序中未初始化的全局数据（BSS）部分。
+	// 这将确保所有静态/全局变量从零开始。
 	memset(edata, 0, end - edata);
 
-	// Initialize the console.
+	// Initialize the console.  初始化控制台。 
 	// Can't call cprintf until after we do this!
 	cons_init();
 
