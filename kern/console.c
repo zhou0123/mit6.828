@@ -27,25 +27,25 @@ delay(void)
 
 #define COM1		0x3F8
 
-#define COM_RX		0	// In:	Receive buffer (DLAB=0)
-#define COM_TX		0	// Out: Transmit buffer (DLAB=0)
-#define COM_DLL		0	// Out: Divisor Latch Low (DLAB=1)
-#define COM_DLM		1	// Out: Divisor Latch High (DLAB=1)
-#define COM_IER		1	// Out: Interrupt Enable Register
-#define   COM_IER_RDI	0x01	//   Enable receiver data interrupt
-#define COM_IIR		2	// In:	Interrupt ID Register
+#define COM_RX		0	// In:	Receive buffer (DLAB=0) 接收缓冲区
+#define COM_TX		0	// Out: Transmit buffer (DLAB=0)  传输缓冲区 
+#define COM_DLL		0	// Out: Divisor Latch Low (DLAB=1) 分频器锁存器低
+#define COM_DLM		1	// Out: Divisor Latch High (DLAB=1) 分频器锁存器高
+#define COM_IER		1	// Out: Interrupt Enable Register  中断启用寄存器 
+#define   COM_IER_RDI	0x01	//   Enable receiver data interrupt  启用接收器数据中断 
+#define COM_IIR		2	// In:	Interrupt ID Register  中断ID寄存器 
 #define COM_FCR		2	// Out: FIFO Control Register
 #define COM_LCR		3	// Out: Line Control Register
-#define	  COM_LCR_DLAB	0x80	//   Divisor latch access bit
+#define	  COM_LCR_DLAB	0x80	//   Divisor latch access bit  除法器锁存存取位 
 #define	  COM_LCR_WLEN8	0x03	//   Wordlength: 8 bits
-#define COM_MCR		4	// Out: Modem Control Register
-#define	  COM_MCR_RTS	0x02	// RTS complement
+#define COM_MCR		4	// Out: Modem Control Register 调制解调器控制寄存器
+#define	  COM_MCR_RTS	0x02	// RTS complement  RTS补码 
 #define	  COM_MCR_DTR	0x01	// DTR complement
 #define	  COM_MCR_OUT2	0x08	// Out2 complement
-#define COM_LSR		5	// In:	Line Status Register
-#define   COM_LSR_DATA	0x01	//   Data available
-#define   COM_LSR_TXRDY	0x20	//   Transmit buffer avail
-#define   COM_LSR_TSRE	0x40	//   Transmitter off
+#define COM_LSR		5	// In:	Line Status Register  线路状态寄存器 
+#define   COM_LSR_DATA	0x01	//   Data available 可用数据
+#define   COM_LSR_TXRDY	0x20	//   Transmit buffer avail  传输缓冲区可用 
+#define   COM_LSR_TSRE	0x40	//   Transmitter off 发射器关闭
 
 static bool serial_exists;
 
@@ -106,9 +106,9 @@ serial_init(void)
 
 
 
-/***** Parallel port output code *****/
+/***** Parallel port output code   并行端口输出代码 *****/
 // For information on PC parallel port programming, see the class References
-// page.
+// page.  有关PC并行端口编程的信息，请参阅类参考页 
 
 static void
 lpt_putc(int c)

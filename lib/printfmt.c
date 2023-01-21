@@ -38,16 +38,16 @@ static void
 printnum(void (*putch)(int, void*), void *putdat,
 	 unsigned long long num, unsigned base, int width, int padc)
 {
-	// first recursively print all preceding (more significant) digits
+	// first recursively print all preceding (more significant) digits  首先递归打印所有前面（更有效）的数字 
 	if (num >= base) {
 		printnum(putch, putdat, num / base, base, width - 1, padc);
 	} else {
-		// print any needed pad characters before first digit
+		// print any needed pad characters before first digit  在第一个数字之前打印任何需要的填充字符 
 		while (--width > 0)
 			putch(padc, putdat);
 	}
 
-	// then print this (the least significant) digit
+	// then print this (the least significant) digit 然后打印这个（最低有效）数字
 	putch("0123456789abcdef"[num % base], putdat);
 }
 
@@ -97,7 +97,7 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 			putch(ch, putdat);
 		}
 
-		// Process a %-escape sequence
+		// Process a %-escape sequence  处理%转义序列 
 		padc = ' ';
 		width = -1;
 		precision = -1;
@@ -106,12 +106,12 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 	reswitch:
 		switch (ch = *(unsigned char *) fmt++) {
 
-		// flag to pad on the right
+		// flag to pad on the right  右边的旗子 
 		case '-':
 			padc = '-';
 			goto reswitch;
 
-		// flag to pad with 0's instead of spaces
+		// flag to pad with 0's instead of spaces  %1（默认）标志，用0代替空格填充 
 		case '0':
 			padc = '0';
 			goto reswitch;
@@ -208,10 +208,13 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 		// (unsigned) octal
 		case 'o':
 			// Replace this with your code.
-			putch('X', putdat);
-			putch('X', putdat);
-			putch('X', putdat);
-			break;
+			// putch('X', putdat);
+			// putch('X', putdat);
+			// putch('X', putdat);
+			// break;
+			num = getuint(&ap, lflag);
+			base = 8;
+			goto number;
 
 		// pointer
 		case 'p':
