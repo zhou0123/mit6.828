@@ -31,13 +31,14 @@ struct File {
 	off_t f_size;			// file size in bytes
 	uint32_t f_type;		// file type
 
-	// Block pointers.
+	// Block pointers.  块指针。 	
 	// A block is allocated iff its value is != 0.
 	uint32_t f_direct[NDIRECT];	// direct blocks
 	uint32_t f_indirect;		// indirect block
 
 	// Pad out to 256 bytes; must do arithmetic in case we're compiling
 	// fsformat on a 64-bit machine.
+	//  填充到256字节；必须进行算术运算，以防在64位机器上编译fsformat。 
 	uint8_t f_pad[256 - MAXNAMELEN - 8 - 4*NDIRECT - 4];
 } __attribute__((packed));	// required only on some 64-bit machines
 

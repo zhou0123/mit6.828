@@ -1,5 +1,5 @@
 // Simple implementation of cprintf console output for the kernel,
-// based on printfmt() and the kernel console's cputchar().
+// based on printfmt() and the kernel console's cputchar(). 内核cprintf控制台输出的简单实现，基于printfmt（）和内核控制台的cputchar（）。
 
 #include <inc/types.h>
 #include <inc/stdio.h>

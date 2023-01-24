@@ -5,6 +5,10 @@
 # memory at physical address 0x7c00 and starts executing in real mode
 # with %cs=0 %ip=7c00.
 
+#启动CPU：切换到32位保护模式，跳到C。
+#BIOS将此代码从硬盘的第一个扇区加载到
+#物理地址为0x7c00的内存，并开始以实模式执行
+#其中%cs=0%ip=7c00。 
 .set PROT_MODE_CSEG, 0x8         # kernel code segment selector
 .set PROT_MODE_DSEG, 0x10        # kernel data segment selector
 .set CR0_PE_ON,      0x1         # protected mode enable flag
@@ -16,6 +20,7 @@ start:
   cld                         # String operations increment
 
   # Set up the important data segment registers (DS, ES, SS).
+  # 设置重要数据段寄存器（DS、ES、SS） 
   xorw    %ax,%ax             # Segment number zero
   movw    %ax,%ds             # -> Data Segment
   movw    %ax,%es             # -> Extra Segment

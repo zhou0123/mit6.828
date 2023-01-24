@@ -50,14 +50,18 @@ dumbfork(void)
 	// so that the child will appear to have called sys_exofork() too -
 	// except that in the child, this "fake" call to sys_exofork()
 	// will return 0 instead of the envid of the child.
+	// 分配一个新的子环境。内核将使用注册状态的副本初始化它，这样子环境看起来也调用了sys_exofork（），
+	// 除了在子环境中，对sys_exofork（）的“假”调用将返回0而不是子环境的envid。
 	envid = sys_exofork();
 	if (envid < 0)
+		// panic("sys_exofork: %d", envid);
 		panic("sys_exofork: %e", envid);
 	if (envid == 0) {
 		// We're the child.
 		// The copied value of the global variable 'thisenv'
 		// is no longer valid (it refers to the parent!).
 		// Fix it and return 0.
+		// 我们是子级。全局变量“thienv”的复制值不再有效（它引用父级！）。请修复它并返回0。
 		thisenv = &envs[ENVX(sys_getenvid())];
 		return 0;
 	}
@@ -65,10 +69,12 @@ dumbfork(void)
 	// We're the parent.
 	// Eagerly copy our entire address space into the child.
 	// This is NOT what you should do in your fork implementation.
+	// 我们是父级。急切地将我们的整个地址空间复制到子级。这不是你在fork实现中应该做的。
 	for (addr = (uint8_t*) UTEXT; addr < end; addr += PGSIZE)
 		duppage(envid, addr);
 
 	// Also copy the stack we are currently running on.
+	//  还要复制当前正在运行的堆栈。 
 	duppage(envid, ROUNDDOWN(&addr, PGSIZE));
 
 	// Start the child environment running

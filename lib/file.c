@@ -12,6 +12,9 @@ union Fsipc fsipcbuf __attribute__((aligned(PGSIZE)));
 // type: request code, passed as the simple integer IPC value.
 // dstva: virtual address at which to receive reply page, 0 if none.
 // Returns result from the file server.
+// 向文件服务器发送环境间请求，并等待答复。请求主体应该在fsipcbuf中，
+// 部分响应可以写回fsipcbuf.type:request代码，作为简单整数IPC值传递。
+// dstva：接收回复页的虚拟地址，如果没有，则为0。从文件服务器返回结果。 
 static int
 fsipc(unsigned type, void *dstva)
 {
@@ -104,7 +107,7 @@ devfile_flush(struct Fd *fd)
 }
 
 // Read at most 'n' bytes from 'fd' at the current position into 'buf'.
-//
+//  从当前位置的“fd”最多读取“n”个字节到“buf”。 
 // Returns:
 // 	The number of bytes successfully read.
 // 	< 0 on error.
@@ -129,20 +132,29 @@ devfile_read(struct Fd *fd, void *buf, size_t n)
 
 
 // Write at most 'n' bytes from 'buf' to 'fd' at the current seek position.
-//
+// 在当前查找位置从“buf”到“fd”最多写入“n”个字节。 
 // Returns:
 //	 The number of bytes successfully written.
 //	 < 0 on error.
 static ssize_t
 devfile_write(struct Fd *fd, const void *buf, size_t n)
-{
-	// Make an FSREQ_WRITE request to the file system server.  Be
-	// careful: fsipcbuf.write.req_buf is only so large, but
-	// remember that write is always allowed to write *fewer*
-	// bytes than requested.
-	// LAB 5: Your code here
-	panic("devfile_write not implemented");
-}
+{       
+        // Make an FSREQ_WRITE request to the file system server.  Be
+        // careful: fsipcbuf.write.req_buf is only so large, but
+        // remember that write is always allowed to write *fewer*
+        // bytes than requested.
+        // LAB 5: Your code here
+        int r;
+        fsipcbuf.write.req_fileid = fd->fd_file.id;
+        n = n > sizeof(fsipcbuf.write.req_buf) ? sizeof(fsipcbuf.write.req_buf):n;
+        fsipcbuf.write.req_n = n;
+        memmove(fsipcbuf.write.req_buf, buf, n);
+        r = fsipc(FSREQ_WRITE, NULL); //error or success都在r中
+        assert(r <= n);
+        assert(r <= PGSIZE);
+        return r;
+        panic("devfile_write not implemented");
+}           
 
 static int
 devfile_stat(struct Fd *fd, struct Stat *st)
