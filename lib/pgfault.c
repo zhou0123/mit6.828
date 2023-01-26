@@ -21,6 +21,9 @@ void (*_pgfault_handler)(struct UTrapframe *utf);
 // at UXSTACKTOP), and tell the kernel to call the assembly-language
 // _pgfault_upcall routine when a page fault occurs.
 //
+// 设置页面错误处理程序函数。如果还没有，_pgfault_handler将为0。
+// 第一次注册处理程序时，我们需要分配一个异常堆栈（一页内存，顶部位于UXSTACKTOP），
+// 并告诉内核在发生页面错误时调用汇编语言_pgfaull_upcall例程。
 void
 set_pgfault_handler(void (*handler)(struct UTrapframe *utf))
 {
@@ -29,9 +32,13 @@ set_pgfault_handler(void (*handler)(struct UTrapframe *utf))
 	if (_pgfault_handler == 0) {
 		// First time through!
 		// LAB 4: Your code here.
-		panic("set_pgfault_handler not implemented");
+		sys_page_alloc(0, (void*)(UXSTACKTOP - PGSIZE), PTE_W | PTE_U | PTE_P);
+		sys_env_set_pgfault_upcall(0, _pgfault_upcall);
 	}
 
 	// Save handler pointer for assembly to call.
+	//  保存要调用的程序集的处理程序指针。 
 	_pgfault_handler = handler;
+
+
 }

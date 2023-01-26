@@ -13,6 +13,7 @@ struct Stat;
 struct Dev;
 
 // Per-device-class file descriptor operations
+// 每设备类文件描述符操作 
 struct Dev {
 	int dev_id;
 	const char *dev_name;

@@ -49,7 +49,8 @@
 
 typedef uint16_t pci_vendor_id_t;
 typedef uint16_t pci_product_id_t;
-
+#define PCI_VENDOR_ID                           0x8086
+#define PCI_DEVICE_ID                           0x100E
 #define	PCI_VENDOR_SHIFT			0
 #define	PCI_VENDOR_MASK				0xffff
 #define	PCI_VENDOR(id) \

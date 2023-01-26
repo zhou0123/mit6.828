@@ -24,6 +24,17 @@ void
 i386_init(void)
 {
 	// Initialize the console.
+	extern char edata[], end[];
+
+	// Before doing anything else, complete the ELF loading process.
+	// Clear the uninitialized global data (BSS) section of our program.
+	// This ensures that all static/global variables start out zero.
+	// 在执行其他操作之前，请完成ELF加载过程。
+	// 清除程序中未初始化的全局数据（BSS）部分。
+	// 这将确保所有静态/全局变量从零开始。
+	memset(edata, 0, end - edata);
+
+	// Initialize the console.  初始化控制台。 
 	// Can't call cprintf until after we do this!
 	cons_init();
 
@@ -36,7 +47,7 @@ i386_init(void)
 	env_init();
 	trap_init();
 
-	// Lab 4 multiprocessor initialization functions
+	// Lab 4 multiprocessor initialization functions 多处理器初始化函数 
 	mp_init();
 	lapic_init();
 
@@ -49,7 +60,7 @@ i386_init(void)
 
 	// Acquire the big kernel lock before waking up APs
 	// Your code here:
-
+	lock_kernel();
 	// Starting non-boot CPUs
 	boot_aps();
 
@@ -67,6 +78,10 @@ i386_init(void)
 #else
 	// Touch all you want.
 	ENV_CREATE(user_icode, ENV_TYPE_USER);
+	ENV_CREATE(user_primes, ENV_TYPE_USER);
+	// ENV_CREATE(user_yield, ENV_TYPE_USER);
+	// ENV_CREATE(user_yield, ENV_TYPE_USER);
+	// ENV_CREATE(user_yield, ENV_TYPE_USER);
 #endif // TEST*
 
 	// Should not be necessary - drains keyboard because interrupt has given up.
@@ -79,6 +94,7 @@ i386_init(void)
 // While boot_aps is booting a given CPU, it communicates the per-core
 // stack pointer that should be loaded by mpentry.S to that CPU in
 // this variable.
+// 当boot_aps引导给定的CPU时，它将mpentry.S应加载的每内核堆栈指针传递给该变量中的CPU。
 void *mpentry_kstack;
 
 // Start the non-boot (AP) processors.
@@ -90,6 +106,7 @@ boot_aps(void)
 	struct CpuInfo *c;
 
 	// Write entry code to unused memory at MPENTRY_PADDR
+	//  将条目代码写入MPENTRY_PADDR中未使用的内存 
 	code = KADDR(MPENTRY_PADDR);
 	memmove(code, mpentry_start, mpentry_end - mpentry_start);
 
@@ -102,7 +119,7 @@ boot_aps(void)
 		mpentry_kstack = percpu_kstacks[c - cpus] + KSTKSIZE;
 		// Start the CPU at mpentry_start
 		lapic_startap(c->cpu_id, PADDR(code));
-		// Wait for the CPU to finish some basic setup in mp_main()
+		// Wait for the CPU to finish some basic setup in mp_main()   等待CPU在mp_main（）中完成一些基本设置 
 		while(c->cpu_status != CPU_STARTED)
 			;
 	}
@@ -124,11 +141,15 @@ mp_main(void)
 	// Now that we have finished some basic setup, call sched_yield()
 	// to start running processes on this CPU.  But make sure that
 	// only one CPU can enter the scheduler at a time!
+	// 现在我们已经完成了一些基本设置，调用sched_yield（）开始在这个CPU上运行进程。
+	// 但请确保一次只能有一个CPU进入调度程序！
 	//
 	// Your code here:
+	lock_kernel();
+	sched_yield();
 
 	// Remove this after you finish Exercise 6
-	for (;;);
+	// for (;;);
 }
 
 /*

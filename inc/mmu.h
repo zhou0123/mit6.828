@@ -5,12 +5,13 @@
  * This file contains definitions for the x86 memory management unit (MMU),
  * including paging- and segmentation-related data structures and constants,
  * the %cr0, %cr4, and %eflags registers, and traps.
+ * 此文件包含x86内存管理单元（MMU）的定义，包括与分页和分段相关的数据结构和常量、%cr0、%cr4和%eflags寄存器以及陷阱。
  */
 
 /*
  *
  *	Part 1.  Paging data structures and constants.
- *
+ *  分页数据结构和常量。 
  */
 
 // A linear address 'la' has a three-part structure as follows:
@@ -25,8 +26,10 @@
 // The PDX, PTX, PGOFF, and PGNUM macros decompose linear addresses as shown.
 // To construct a linear address la from PDX(la), PTX(la), and PGOFF(la),
 // use PGADDR(PDX(la), PTX(la), PGOFF(la)).
+// PDX、PTX、PGOFF和PGNUM宏分解线性地址，如图所示。
+// 要从PDX（la）、PTX（la）和PGOFF（la）构造线性地址la，请使用PGADDR（PDX（a）、PTX（la）和PGFF（la））。
 
-// page number field of address
+// page number field of address  地址的页码字段 
 #define PGNUM(la)	(((uintptr_t) (la)) >> PTXSHIFT)
 
 // page directory index
@@ -38,7 +41,7 @@
 // offset in page
 #define PGOFF(la)	(((uintptr_t) (la)) & 0xFFF)
 
-// construct linear address from indexes and offset
+// construct linear address from indexes and offset  从索引和偏移量构造线性地址 
 #define PGADDR(d, t, o)	((void*) ((d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
 
 // Page directory and page table constants.
@@ -72,7 +75,7 @@
 // Flags in PTE_SYSCALL may be used in system calls.  (Others may not.)
 #define PTE_SYSCALL	(PTE_AVAIL | PTE_P | PTE_W | PTE_U)
 
-// Address in page table or page directory entry
+// Address in page table or page directory entry  页表或页目录条目中的地址 
 #define PTE_ADDR(pte)	((physaddr_t) (pte) & ~0xFFF)
 
 // Control Register flags
@@ -212,9 +215,10 @@ struct Segdesc {
 #ifndef __ASSEMBLER__
 
 // Task state segment format (as described by the Pentium architecture book)
+//  任务状态段格式（如奔腾体系结构手册所述） 
 struct Taskstate {
 	uint32_t ts_link;	// Old ts selector
-	uintptr_t ts_esp0;	// Stack pointers and segment selectors
+	uintptr_t ts_esp0;	// Stack pointers and segment selectors   特权级别增加后堆栈指针和段选择器 
 	uint16_t ts_ss0;	//   after an increase in privilege level
 	uint16_t ts_padding1;
 	uintptr_t ts_esp1;
@@ -223,8 +227,8 @@ struct Taskstate {
 	uintptr_t ts_esp2;
 	uint16_t ts_ss2;
 	uint16_t ts_padding3;
-	physaddr_t ts_cr3;	// Page directory base
-	uintptr_t ts_eip;	// Saved state from last task switch
+	physaddr_t ts_cr3;	// Page directory base  页面目录库 
+	uintptr_t ts_eip;	// Saved state from last task switch  上次任务切换的保存状态 
 	uint32_t ts_eflags;
 	uint32_t ts_eax;	// More saved state (registers)
 	uint32_t ts_ecx;
@@ -249,10 +253,11 @@ struct Taskstate {
 	uint16_t ts_ldt;
 	uint16_t ts_padding10;
 	uint16_t ts_t;		// Trap on task switch
-	uint16_t ts_iomb;	// I/O map base address
+	uint16_t ts_iomb;	// I/O map base address  I/O映射基地址 
 };
 
 // Gate descriptors for interrupts and traps
+//  中断和陷阱的门描述符 
 struct Gatedesc {
 	unsigned gd_off_15_0 : 16;   // low 16 bits of offset in segment
 	unsigned gd_sel : 16;        // segment selector
@@ -267,18 +272,26 @@ struct Gatedesc {
 
 // Set up a normal interrupt/trap gate descriptor.
 // - istrap: 1 for a trap (= exception) gate, 0 for an interrupt gate.
-    //   see section 9.6.1.3 of the i386 reference: "The difference between
-    //   an interrupt gate and a trap gate is in the effect on IF (the
-    //   interrupt-enable flag). An interrupt that vectors through an
-    //   interrupt gate resets IF, thereby preventing other interrupts from
-    //   interfering with the current interrupt handler. A subsequent IRET
-    //   instruction restores IF to the value in the EFLAGS image on the
-    //   stack. An interrupt through a trap gate does not change IF."
+//       see section 9.6.1.3 of the i386 reference: "The difference between
+//       an interrupt gate and a trap gate is in the effect on IF (the
+//       interrupt-enable flag). An interrupt that vectors through an
+//       interrupt gate resets IF, thereby preventing other interrupts from
+//       interfering with the current interrupt handler. A subsequent IRET
+//       instruction restores IF to the value in the EFLAGS image on the
+//       stack. An interrupt through a trap gate does not change IF."
 // - sel: Code segment selector for interrupt/trap handler
 // - off: Offset in code segment for interrupt/trap handler
 // - dpl: Descriptor Privilege Level -
-//	  the privilege level required for software to invoke
-//	  this interrupt/trap gate explicitly using an int instruction.
+// 	  the privilege level required for software to invoke
+// 	  this interrupt/trap gate explicitly using an int instruction.
+//  设置正常中断/陷阱门描述符。 
+// -istrap:1表示陷阱（=异常）门，0表示中断门。
+// 参见i386参考文件第9.6.1.3节：“中断门和陷波门之间的差异影响IF（中断启用标志）
+// 引导通过中断门的中断重置IF，从而防止其他中断干扰当前中断处理程序。
+// 随后的IRET指令将IF恢复为堆栈上EFLAGS映像中的值。通过陷波门的中断不会改变IF。”
+// -sel：中断/陷阱处理程序的代码段选择器
+// -off:中断/陷阱处理程序代码段中的偏移量
+// -dpl：描述符特权级别软件使用int指令显式调用此中断/陷阱门所需的特权级别。
 #define SETGATE(gate, istrap, sel, off, dpl)			\
 {								\
 	(gate).gd_off_15_0 = (uint32_t) (off) & 0xffff;		\

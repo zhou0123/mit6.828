@@ -13,14 +13,18 @@
 
 // The file system server maintains three structures
 // for each open file.
+//  文件系统服务器为每个打开的文件维护三个结构。 
 //
 // 1. The on-disk 'struct File' is mapped into the part of memory
 //    that maps the disk.  This memory is kept private to the file
 //    server.
+//  1.磁盘上的“struct File”映射到映射磁盘的内存部分。此内存对文件服务器保持专用。 
 // 2. Each open file has a 'struct Fd' as well, which sort of
 //    corresponds to a Unix file descriptor.  This 'struct Fd' is kept
 //    on *its own page* in memory, and it is shared with any
 //    environments that have the file open.
+//  2.每个打开的文件也有一个“structFd”，这与Unix文件描述符相对应。
+//  此“struct Fd”保存在内存中的*它自己的页面*上，并与任何打开文件的环境共享。 
 // 3. 'struct OpenFile' links these other two structures, and is kept
 //    private to the file server.  The server maintains an array of
 //    all open files, indexed by "file ID".  (There can be at most
@@ -28,6 +32,10 @@
 //    communicate with the server.  File IDs are a lot like
 //    environment IDs in the kernel.  Use openfile_lookup to translate
 //    file IDs to struct OpenFile.
+// 3.“structOpenFile”链接其他两个结构，并对文件服务器保持私有。
+// 服务器维护所有打开文件的数组，按“文件ID”进行索引。
+// （最多可以同时打开MAXOPEN文件。）客户端使用文件ID与服务器通信。
+// 文件ID与内核中的环境ID非常相似。使用openfile_lookup将文件ID转换为结构openfile。 
 
 struct OpenFile {
 	uint32_t o_fileid;	// file id
@@ -46,6 +54,7 @@ struct OpenFile opentab[MAXOPEN] = {
 };
 
 // Virtual address at which to receive page mappings containing client requests.
+//  接收包含客户端请求的页面映射的虚拟地址。 
 union Fsipc *fsreq = (union Fsipc *)0x0ffff000;
 
 void
@@ -84,6 +93,7 @@ openfile_alloc(struct OpenFile **o)
 }
 
 // Look up an open file for envid.
+//  查找envid的打开文件。 
 int
 openfile_lookup(envid_t envid, uint32_t fileid, struct OpenFile **po)
 {
@@ -99,6 +109,8 @@ openfile_lookup(envid_t envid, uint32_t fileid, struct OpenFile **po)
 // Open req->req_path in mode req->req_omode, storing the Fd page and
 // permissions to return to the calling environment in *pg_store and
 // *perm_store respectively.
+//  在req->req_omode模式下打开req->req_path，
+// 分别在*pg_store和*perm_store中存储Fd页面和返回调用环境的权限。 
 int
 serve_open(envid_t envid, struct Fsreq_open *req,
 	   void **pg_store, int *perm_store)
@@ -113,6 +125,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 		cprintf("serve_open %08x %s 0x%x\n", envid, req->req_path, req->req_omode);
 
 	// Copy in the path, making sure it's null-terminated
+	// 在路径中复制，确保其以空结尾 
 	memmove(path, req->req_path, MAXPATHLEN);
 	path[MAXPATHLEN-1] = 0;
 
@@ -142,7 +155,7 @@ try_open:
 		}
 	}
 
-	// Truncate
+	// Truncate  截断 
 	if (req->req_omode & O_TRUNC) {
 		if ((r = file_set_size(f, 0)) < 0) {
 			if (debug)
@@ -178,6 +191,7 @@ try_open:
 
 // Set the size of req->req_fileid to req->req_size bytes, truncating
 // or extending the file as necessary.
+//  将req->req_fileid的大小设置为req->req_size字节，根据需要截断或扩展文件。 
 int
 serve_set_size(envid_t envid, struct Fsreq_set_size *req)
 {
@@ -204,6 +218,9 @@ serve_set_size(envid_t envid, struct Fsreq_set_size *req)
 // in ipc->read.req_fileid.  Return the bytes read from the file to
 // the caller in ipc->readRet, then update the seek position.  Returns
 // the number of bytes successfully read, or < 0 on error.
+// 从ipc->Read.req_fileid中的当前查找位置读取最多ipc->Read_req_n字节。
+// 将从文件读取的字节返回到ipc->readRet中的调用者，然后更新查找位置。
+// 返回成功读取的字节数，或出现错误时小于0。
 int
 serve_read(envid_t envid, union Fsipc *ipc)
 {
@@ -214,7 +231,14 @@ serve_read(envid_t envid, union Fsipc *ipc)
 		cprintf("serve_read %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
 	// Lab 5: Your code here:
-	return 0;
+	struct OpenFile* o = NULL;
+	int r = openfile_lookup(envid, req->req_fileid, &o);
+	if(r < 0) return r;
+	r = file_read(o->o_file, ret->ret_buf, req->req_n, o->o_fd->fd_offset);
+	// We need to update the seek position
+	//  我们需要更新搜索位置 
+	if(r > 0)o->o_fd->fd_offset += r;
+	return r;
 }
 
 
@@ -222,15 +246,27 @@ serve_read(envid_t envid, union Fsipc *ipc)
 // the current seek position, and update the seek position
 // accordingly.  Extend the file if necessary.  Returns the number of
 // bytes written, or < 0 on error.
-int
-serve_write(envid_t envid, struct Fsreq_write *req)
+// 从当前寻道位置开始，将req->req_n字节从req->req_buf写入req_fileid，
+// 并相应地更新寻道位置。如有必要，扩展文件。返回写入的字节数，或出错时小于0。 
+int serve_write(envid_t envid, struct Fsreq_write *req)
 {
-	if (debug)
-		cprintf("serve_write %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
+        if (debug)
+                cprintf("serve_write %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
-	// LAB 5: Your code here.
-	panic("serve_write not implemented");
+        // LAB 5: Your code here.
+        int r;
+        struct OpenFile *o; 
+        if ((r = openfile_lookup(envid, req->req_fileid, &o)) < 0)
+                return r;
+        // 多于的就扔掉，确实不太合理，感觉应该循环写入的
+        int req_n = req->req_n > PGSIZE ? PGSIZE : req->req_n;
+        if((r = file_write(o->o_file, req->req_buf, req_n, o->o_fd->fd_offset))<0)
+                return r;
+        o->o_fd->fd_offset += r;
+        return r;
+        panic("serve_write not implemented");
 }
+
 
 // Stat ipc->stat.req_fileid.  Return the file's struct Stat to the
 // caller in ipc->statRet.
@@ -255,6 +291,7 @@ serve_stat(envid_t envid, union Fsipc *ipc)
 }
 
 // Flush all data and metadata of req->req_fileid to disk.
+//  将req->req_fileid的所有数据和元数据刷新到磁盘。 
 int
 serve_flush(envid_t envid, struct Fsreq_flush *req)
 {

@@ -5,12 +5,19 @@
 #define UTEMP2			(UTEMP + PGSIZE)
 #define UTEMP3			(UTEMP2 + PGSIZE)
 
+extern volatile pte_t uvpt[];     // VA of "virtual page table"
+extern volatile pde_t uvpd[];     // VA of current page directory
 // Helper functions for spawn.
 static int init_stack(envid_t child, const char **argv, uintptr_t *init_esp);
 static int map_segment(envid_t child, uintptr_t va, size_t memsz,
 		       int fd, size_t filesz, off_t fileoffset, int perm);
 static int copy_shared_pages(envid_t child);
-
+static pte_t get_pte(void* addr)
+{
+	if((uvpd[PDX((uintptr_t)addr)] & PTE_P) == 0)
+		return 0;
+	return uvpt[PGNUM((uintptr_t)addr)];
+}
 // Spawn a child process from a program image loaded from the file system.
 // prog: the pathname of the program to run.
 // argv: pointer to null-terminated array of pointers to strings,
@@ -179,6 +186,9 @@ spawnl(const char *prog, const char *arg0, ...)
 // Set up the initial stack page for the new child process with envid 'child'
 // using the arguments array pointed to by 'argv',
 // which is a null-terminated array of pointers to null-terminated strings.
+// 为具有envid“child”的新子进程设置初始堆栈页
+// 使用“argv”指向的参数数组，
+// 它是指向空终止字符串的指针的空终止数组。
 //
 // On success, returns 0 and sets *init_esp
 // to the initial stack pointer with which the child should start.
@@ -298,10 +308,27 @@ map_segment(envid_t child, uintptr_t va, size_t memsz,
 }
 
 // Copy the mappings for shared pages into the child address space.
+//  将共享页的映射复制到子地址空间。 
 static int
 copy_shared_pages(envid_t child)
 {
 	// LAB 5: Your code here.
+	for(unsigned int i = 0; i < PGNUM(UTOP); i++)
+	{
+		// Remember to ignore exception stack
+		if(i == PGNUM(UXSTACKTOP - PGSIZE))
+			continue;
+		// check whether this page table entry is valid(whether there exists a mapping)
+		//  检查此页表条目是否有效（是否存在映射） 
+		void* addr = (void*)(i * PGSIZE);
+		pte_t pte = get_pte(addr);
+		if((pte & PTE_P) && (pte & PTE_SHARE))
+		{
+			int error_code = 0;
+			if((error_code = sys_page_map(0, addr, child, addr, pte & PTE_SYSCALL)) < 0)
+				panic("Page Map Failed: %e", error_code);
+		}
+	}
 	return 0;
 }
 

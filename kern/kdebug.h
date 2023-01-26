@@ -3,14 +3,14 @@
 
 #include <inc/types.h>
 
-// Debug information about a particular instruction pointer
+// Debug information about a particular instruction pointer 有关特定指令指针的调试信息
 struct Eipdebuginfo {
 	const char *eip_file;		// Source code filename for EIP
 	int eip_line;			// Source code linenumber for EIP
 
-	const char *eip_fn_name;	// Name of function containing EIP
+	const char *eip_fn_name;	// Name of function containing EIP  包含EIP的函数的名称 
 					//  - Note: not null terminated!
-	int eip_fn_namelen;		// Length of function name
+	int eip_fn_namelen;		// Length of function name  函数名称的长度 
 	uintptr_t eip_fn_addr;		// Address of start of function
 	int eip_fn_narg;		// Number of function arguments
 };

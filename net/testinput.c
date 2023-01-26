@@ -1,6 +1,5 @@
 #include "ns.h"
 #include <netif/etharp.h>
-
 static envid_t output_envid;
 static envid_t input_envid;
 

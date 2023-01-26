@@ -49,7 +49,7 @@ static void
 lapicw(int index, int value)
 {
 	lapic[index] = value;
-	lapic[ID];  // wait for write to finish, by reading
+	lapic[ID];  // wait for write to finish, by reading 通过阅读等待写入完成
 }
 
 void
@@ -60,34 +60,40 @@ lapic_init(void)
 
 	// lapicaddr is the physical address of the LAPIC's 4K MMIO
 	// region.  Map it in to virtual memory so we can access it.
+	// lapicaddr是LAPIC的4K MMIO区域的物理地址。将其映射到虚拟内存，以便我们可以访问它。
 	lapic = mmio_map_region(lapicaddr, 4096);
 
-	// Enable local APIC; set spurious interrupt vector.
+	// Enable local APIC; set spurious interrupt vector.  启用本地APIC；设置假中断向量。 
 	lapicw(SVR, ENABLE | (IRQ_OFFSET + IRQ_SPURIOUS));
 
 	// The timer repeatedly counts down at bus frequency
 	// from lapic[TICR] and then issues an interrupt.  
 	// If we cared more about precise timekeeping,
 	// TICR would be calibrated using an external time source.
+	// 计时器从lapic[TICR]以总线频率重复倒计时，然后发出中断。如果我们更关心精确的计时，
+	// TICR将使用外部时间源进行校准。
 	lapicw(TDCR, X1);
 	lapicw(TIMER, PERIODIC | (IRQ_OFFSET + IRQ_TIMER));
 	lapicw(TICR, 10000000); 
 
 	// Leave LINT0 of the BSP enabled so that it can get
 	// interrupts from the 8259A chip.
-	//
+	// 使BSP的LINT0处于启用状态，以便它可以从8259A芯片获得中断。 
 	// According to Intel MP Specification, the BIOS should initialize
 	// BSP's local APIC in Virtual Wire Mode, in which 8259A's
 	// INTR is virtually connected to BSP's LINTIN0. In this mode,
 	// we do not need to program the IOAPIC.
+	// 根据Intel MP规范，BIOS应在虚拟线模式下初始化BSP的本地APIC，其中8259A的INTR虚拟连接到BSP的LINTIN0。
+	// 在此模式下，我们不需要对IOAPIC进行编程。
 	if (thiscpu != bootcpu)
 		lapicw(LINT0, MASKED);
 
-	// Disable NMI (LINT1) on all CPUs
+	// Disable NMI (LINT1) on all CPUs  在所有CPU上禁用NMI（LINT1） 
 	lapicw(LINT1, MASKED);
 
 	// Disable performance counter overflow interrupts
 	// on machines that provide that interrupt entry.
+	//  在提供中断项的计算机上禁用性能计数器溢出中断。 
 	if (((lapic[VER]>>16) & 0xFF) >= 4)
 		lapicw(PCINT, MASKED);
 
@@ -119,7 +125,7 @@ cpunum(void)
 	return 0;
 }
 
-// Acknowledge interrupt.
+// Acknowledge interrupt.  确认中断。 
 void
 lapic_eoi(void)
 {
@@ -138,6 +144,7 @@ microdelay(int us)
 
 // Start additional processor running entry code at addr.
 // See Appendix B of MultiProcessor Specification.
+//  在addr处启动额外的处理器运行入口代码。请参阅《多处理器规范》附录B。 
 void
 lapic_startap(uint8_t apicid, uint32_t addr)
 {
